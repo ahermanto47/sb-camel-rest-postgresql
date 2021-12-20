@@ -34,7 +34,7 @@ public class RestRouter extends RouteBuilder {
 				.setHeader("email").jsonpath("$.Email", true)
 				.setBody(simple(
 						"insert into members values ('${header.id}', '${header.accountId}', '${header.firstName}', '${header.lastName}', '${header.phone}', '${header.email}')"))
-				.to("jdbc:dataSource?useHeadersAsParameters=true").log("successful")
+				.to("jdbc:dataSource?useHeadersAsParameters=true").log("success")
 				.setHeader(Exchange.HTTP_RESPONSE_CODE, constant(204)).setBody(constant(""));
 		;
 
