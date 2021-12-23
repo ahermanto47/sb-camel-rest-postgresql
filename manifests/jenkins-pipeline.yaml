@@ -86,7 +86,7 @@ items:
                   sh "cp target/*.jar target/ROOT.jar"
                   script {
                     openshift.withCluster() {
-                      openshift.withProject("poc-dev") {
+                      openshift.withProject("andi-hermanto-dev") {
                         openshift.selector("bc", "sb-camel-rest-postgresql").startBuild("--from-file=target/ROOT.jar", "--wait=true")
                       }
                     }
@@ -95,7 +95,7 @@ items:
               }
               stage('Deploy') {
                 steps {
-                  sh "oc new-app --name=sb-camel-rest-postgresql --image=default-route-openshift-image-registry.apps-crc.testing/poc-dev/sb-camel-rest-postgresql --allow-missing-images --as-deployment-config -n poc-dev"
+                  sh "oc new-app --name=sb-camel-rest-postgresql --image=default-route-openshift-image-registry.apps-crc.testing/andi-hermanto-dev/sb-camel-rest-postgresql --allow-missing-images --as-deployment-config -n andi-hermanto-dev"
                   sleep 10
                   sh "oc expose service/sb-camel-rest-postgresql"
                 }
