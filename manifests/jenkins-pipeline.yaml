@@ -1,79 +1,104 @@
-apiVersion: build.openshift.io/v1
-kind: BuildConfig
-metadata:
-  labels:
-    application: sb-camel-rest-postgresql
-  name: "sb-camel-rest-postgresql-pipeline"
-spec:
-  source:
-    type: Git
-    git:
-      uri: https://github.com/ahermanto47/sb-camel-rest-postgresql
-      ref: main
-  triggers:
-    - github:
-        secret: secret
-      type: GitHub
-    - generic:
-        secret: secret
-      type: Generic
-  strategy:
-    type: "JenkinsPipeline"
-    jenkinsPipelineStrategy:
-      jenkinsfile: |-
-        pipeline {
-          agent {
-            kubernetes {
-              label "jenkins"
-              cloud 'openshift'
-              serviceAccount 'jenkins'
-              containerTemplate {
-                name 'jnlp'
-                image "image-registry.openshift-image-registry.svc:5000/openshift/jenkins-agent-maven"
-                alwaysPullImage true
-                workingDir '/tmp'
-                args '${computer.jnlpmac} ${computer.name}'
-                ttyEnabled false
+apiVersion: v1
+kind: List
+metadata: {}
+items:
+- apiVersion: image.openshift.io/v1
+  kind: ImageStream
+  metadata:
+    name: openjdk-11
+  spec:
+    lookupPolicy:
+      local: false
+    tags:
+    - annotations:
+        openshift.io/imported-from: registry.access.redhat.com/ubi8/openjdk-11
+      from:
+        kind: DockerImage
+        name: registry.access.redhat.com/ubi8/openjdk-11
+      generation: null
+      importPolicy: {}
+      name: latest
+      referencePolicy:
+        type: ""
+  status:
+    dockerImageRepository: ""
+- apiVersion: build.openshift.io/v1
+  kind: BuildConfig
+  metadata:
+    labels:
+      application: sb-camel-rest-postgresql
+    name: "sb-camel-rest-postgresql-pipeline"
+  spec:
+    source:
+      type: Git
+      git:
+        uri: https://github.com/ahermanto47/sb-camel-rest-postgresql
+        ref: main
+    triggers:
+      - github:
+          secret: secret
+        type: GitHub
+      - generic:
+          secret: secret
+        type: Generic
+    strategy:
+      type: "JenkinsPipeline"
+      jenkinsPipelineStrategy:
+        jenkinsfile: |-
+          pipeline {
+            agent {
+              kubernetes {
+                label "jenkins"
+                cloud 'openshift'
+                serviceAccount 'jenkins'
+                containerTemplate {
+                  name 'jnlp'
+                  image "image-registry.openshift-image-registry.svc:5000/openshift/jenkins-agent-maven"
+                  alwaysPullImage true
+                  workingDir '/tmp'
+                  args '${computer.jnlpmac} ${computer.name}'
+                  ttyEnabled false
+                }
               }
             }
-          }
-          stages{
-            stage("Checkout") {
-              steps {
-                git branch: "main", url: "https://github.com/ahermanto47/sb-camel-rest-postgresql.git"
-                stash excludes: 'target/**,lib/**', name: 'source'
+            stages{
+              stage("Checkout") {
+                steps {
+                  git branch: "main", url: "https://github.com/ahermanto47/sb-camel-rest-postgresql.git"
+                  stash excludes: 'target/**,lib/**', name: 'source'
+                }
+              }           
+  
+              stage("Build") {
+                steps {
+                  unstash 'source'
+                  sh "ls"
+                  sh "mvn clean package"
+                  stash includes: 'target/*.jar', name: 'jar'
+                }
               }
-            }           
-
-            stage("Build") {
-              steps {
-                unstash 'source'
-                sh "ls"
-                sh "mvn clean package"
-                stash includes: 'target/*.jar', name: 'jar'
-              }
-            }
-
-            stage('Build Image') {
-              steps {
-                unstash 'jar'
-                sh 'ls target'
-                sh "cp target/*.jar target/ROOT.jar"
-                script {
-                  openshift.withCluster() {
-                    openshift.withProject("poc-dev") {
-                      openshift.selector("bc", "sb-camel-rest-postgresql").startBuild("--from-file=target/ROOT.jar", "--wait=true")
+  
+              stage('Build Image') {
+                steps {
+                  sh "oc new-build --name=sb-camel-rest-postgresql --image-stream=openjdk-11 --binary=true"                
+                  unstash 'jar'
+                  sh 'ls target'
+                  sh "cp target/*.jar target/ROOT.jar"
+                  script {
+                    openshift.withCluster() {
+                      openshift.withProject("poc-dev") {
+                        openshift.selector("bc", "sb-camel-rest-postgresql").startBuild("--from-file=target/ROOT.jar", "--wait=true")
+                      }
                     }
                   }
                 }
               }
-            }
-            stage('Deploy') {
-              steps {
-                sh "oc new-app --name=sb-camel-rest-postgresql --image=default-route-openshift-image-registry.apps-crc.testing/poc-dev/sb-camel-rest-postgresql --allow-missing-images --as-deployment-config -n poc-dev"
-                sleep 10
-                sh "oc expose service/sb-camel-rest-postgresql"
+              stage('Deploy') {
+                steps {
+                  sh "oc new-app --name=sb-camel-rest-postgresql --image=default-route-openshift-image-registry.apps-crc.testing/poc-dev/sb-camel-rest-postgresql --allow-missing-images --as-deployment-config -n poc-dev"
+                  sleep 10
+                  sh "oc expose service/sb-camel-rest-postgresql"
+                }
               }
-            }
-          }           
-        }
+            }           
+          }
