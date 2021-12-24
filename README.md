@@ -9,3 +9,5 @@ oc process openshift//jenkins-ephemeral | oc apply -f-
 
 3. Install pipeline
 oc apply -f manifests/jenkins-pipeline.yaml
+
+test gits
