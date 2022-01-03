@@ -22,25 +22,10 @@ import java.io.IOException;
 public class ScenarioHooks {
 
     @Autowired
-    private ScenarioContextUI uiContext;
-
-    @Autowired
     private ScenarioContextApi apiContext;
 
     @Autowired
     private MockMvc mvc;
-
-    @Before("@ui")
-    public void setupForUI() {
-        uiContext.getWebDriver();
-    }
-
-    @After("@ui")
-    public void tearDownForUi(Scenario scenario) throws IOException {
-        uiContext.getReport().write(scenario);
-        uiContext.getReport().captureScreenShot(scenario, uiContext.getWebDriver());
-        uiContext.getWebDriver().quit();
-    }
 
     @Before("@api")
     public void setupForApi() {
