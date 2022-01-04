@@ -104,7 +104,6 @@ items:
               
               stage('Integration Test') {
                 steps {
-                  sh "export TARGET_URL=$(oc get routes -o json | jq -r '.items[1].spec.host')"
                   unstash 'source'
                   sh "mvn verify -Pacceptance"
                 }
