@@ -93,11 +93,20 @@ items:
                   }
                 }
               }
+              
               stage('Deploy') {
                 steps {
                   sh "oc new-app --name=sb-camel-rest-postgresql --image=image-registry.openshift-image-registry.svc:5000/andi-hermanto-dev/sb-camel-rest-postgresql --allow-missing-images --as-deployment-config -n andi-hermanto-dev"
                   sleep 10
                   sh "oc expose service/sb-camel-rest-postgresql"
+                }
+              }
+              
+              stage('Integration Test') {
+                steps {
+                  sh "export TARGET_URL=$(oc get routes -o json | jq -r '.items[1].spec.host')"
+                  unstash 'source'
+                  sh "mvn verify -Pacceptance"
                 }
               }
             }           
