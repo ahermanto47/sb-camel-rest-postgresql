@@ -38,6 +38,7 @@ public class RestRouter extends RouteBuilder {
           .to("direct:list-member");
 
 		from("direct:list-member")
+		  .id("list-member-route")
 		  .setBody(constant("select * from member"))
 		  .to("jdbc:dataSource?useHeadersAsParameters=true").log("success");
 		
