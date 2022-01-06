@@ -69,12 +69,20 @@ items:
                 }
               }           
   
-              stage("Build") {
+              stage("Build And Unit Test") {
                 steps {
                   unstash 'source'
                   sh "ls"
                   sh "mvn clean package"
                   stash includes: 'target/*.jar', name: 'jar'
+                }
+              }
+  
+              stage("Integration Test") {
+                steps {
+                  unstash 'source'
+                  sh "ls"
+                  sh "mvn verify -Pit"
                 }
               }
   
@@ -99,13 +107,6 @@ items:
                   sh "oc new-app --name=sb-camel-rest-postgresql --image=image-registry.openshift-image-registry.svc:5000/andi-hermanto-dev/sb-camel-rest-postgresql --allow-missing-images --as-deployment-config -n andi-hermanto-dev"
                   sleep 10
                   sh "oc expose service/sb-camel-rest-postgresql"
-                }
-              }
-              
-              stage('Integration Test') {
-                steps {
-                  unstash 'source'
-                  sh "mvn verify -Pacceptance"
                 }
               }
             }           

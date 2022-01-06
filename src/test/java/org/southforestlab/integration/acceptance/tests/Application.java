@@ -6,9 +6,9 @@ import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootApplication
 @ComponentScan(basePackages = "org.southforestlab.integration.acceptance.tests")
-public class ApplicationTests {
+public class Application {
 
     public static void main(final String[] args) {
-        SpringApplication.run(ApplicationTests.class);
+        SpringApplication.run(Application.class);
     }
 }

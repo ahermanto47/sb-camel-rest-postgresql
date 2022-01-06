@@ -22,11 +22,11 @@ import org.springframework.test.context.TestPropertySource;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @CamelSpringBootTest
-@SpringBootTest(classes = { ApplicationTests.class })
+@SpringBootTest(classes = { Application.class })
 @ActiveProfiles("test")
 @TestPropertySource("classpath:application-test.properties")
 @DirtiesContext
-public class CamelSpringTestHelper {
+public class CamelSpringHelper {
 
 	@Autowired
 	private CamelContext camelContext;

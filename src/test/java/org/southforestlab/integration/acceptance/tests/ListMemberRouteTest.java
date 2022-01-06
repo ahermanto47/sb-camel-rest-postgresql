@@ -9,7 +9,7 @@ import org.springframework.test.context.ContextConfiguration;
 
 @UseAdviceWith
 @ContextConfiguration(classes = { RestRouter.class })
-public class ListMemberRouteTest extends CamelSpringTestHelper {
+public class ListMemberRouteTest extends CamelSpringHelper {
 
 
 	@Test
