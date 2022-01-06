@@ -76,14 +76,29 @@ items:
                   sh "mvn clean package"
                   stash includes: 'target/*.jar', name: 'jar'
                 }
+                post {
+                  always {
+                    junit allowEmptyResults: true, testResults: '**/TEST**.xml'
+                  }
+                }
               }
   
               stage("Integration Test") {
                 steps {
                   unstash 'source'
                   sh "ls"
-                  sh "mvn verify -Pit"
+                  sh "mvn clean verify -Pit"
                 }
+                post {
+                    always {
+                        sh "ls target/cucumber"
+                        cucumber reportTitle: 'My report',
+                                jsonReportDirectory: 'target/cucumber',
+                                fileIncludePattern: '**/*cucumber.json',
+                                sortingMethod: 'ALPHABETICAL',
+                                trendsLimit: 100
+                    }
+                }                
               }
   
               stage('Build Image') {
