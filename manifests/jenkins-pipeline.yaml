@@ -46,6 +46,7 @@ items:
       jenkinsPipelineStrategy:
         jenkinsfile: |-
           pipeline {
+
             agent {
               kubernetes {
                 label "jenkins"
@@ -61,7 +62,15 @@ items:
                 }
               }
             }
+
+            environment {
+                HASBC = sh(script: 'oc get bc sb-camel-rest-postgresql --no-headers | wc -l', , returnStdout: true).trim()
+                HASDC = sh(script: 'oc get dc sb-camel-rest-postgresql --no-headers | wc -l', , returnStdout: true).trim()
+                HASRT = sh(script: 'oc get route sb-camel-rest-postgresql --no-headers | wc -l', , returnStdout: true).trim()
+            }
+
             stages{
+
               stage("Checkout") {
                 steps {
                   git branch: "main", url: "https://github.com/ahermanto47/sb-camel-rest-postgresql.git"
@@ -101,9 +110,15 @@ items:
                 }                
               }
   
-              stage('Build Image') {
+              stage('Create BuildConfig') {
+                when { environment name: 'HASBC', value: '0' }
                 steps {
                   sh "oc new-build --name=sb-camel-rest-postgresql --image-stream=openjdk-11 --binary=true"                
+                }
+              }
+
+              stage('Build Image') {
+                steps {
                   unstash 'jar'
                   sh 'ls target'
                   sh "cp target/*.jar target/ROOT.jar"
@@ -117,12 +132,20 @@ items:
                 }
               }
               
-              stage('Deploy') {
+              stage('Create DeploymentConfig') {
+                when { environment name: 'HASDC', value: '0' }
                 steps {
                   sh "oc new-app --name=sb-camel-rest-postgresql --image=image-registry.openshift-image-registry.svc:5000/andi-hermanto-dev/sb-camel-rest-postgresql --allow-missing-images --as-deployment-config -n andi-hermanto-dev"
                   sleep 10
+                }
+              }
+              
+              stage('Create Route') {
+                when { environment name: 'HASRT', value: '0' }
+                steps {
                   sh "oc expose service/sb-camel-rest-postgresql"
                 }
               }
+
             }           
           }
