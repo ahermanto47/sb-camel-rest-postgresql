@@ -31,6 +31,7 @@
 		<spring.boot-version>2.6.1</spring.boot-version>
 		<spring-cloud-contract-wiremock.version>2.2.5.RELEASE</spring-cloud-contract-wiremock.version>
 		<camel.version>3.13.0</camel.version>
+		<checkstyle-maven-plugin.version>3.0.0</checkstyle-maven-plugin.version>
 	</properties>
 
 	<dependencyManagement>
@@ -210,8 +211,36 @@
 					</execution>
 				</executions>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-checkstyle-plugin</artifactId>
+				<version>${checkstyle-maven-plugin.version}</version>
+				<configuration>
+					<configLocation>checkstyle.xml</configLocation>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>check</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
+
+	<reporting>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-checkstyle-plugin</artifactId>
+				<version>${checkstyle-maven-plugin.version}</version>
+				<configuration>
+					<configLocation>checkstyle.xml</configLocation>
+				</configuration>
+			</plugin>
+		</plugins>
+	</reporting>
 
 	<profiles>
 		<profile>
@@ -239,7 +268,6 @@
 							</execution>
 						</executions>
 					</plugin>
-
 				</plugins>
 			</build>
 		</profile>
