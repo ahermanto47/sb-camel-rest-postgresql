@@ -8,3 +8,4 @@ COPY --from=builder snapshot-dependencies/ ./
 COPY --from=builder spring-boot-loader/ ./
 COPY --from=builder application/ ./
 ENTRYPOINT exec java $JAVA_OPTS org.springframework.boot.loader.JarLauncher
+EXPOSE 8080/tcp
